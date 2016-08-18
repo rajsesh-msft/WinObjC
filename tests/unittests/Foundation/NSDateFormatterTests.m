@@ -16,9 +16,6 @@
 
 #include <TestFramework.h>
 #import <Foundation/Foundation.h>
-#import "NSLogging.h"
-
-static const wchar_t* TAG = L"NSDateFormatterTests";
 
 // keys: [[NSLocale localeIdentifier] stringByAppendingFormat:@"%d", timezone.secondsFromGMT]
 // eg "en_US-28800" or "en_GB0"
@@ -42,8 +39,8 @@ bool isSupportedLocaleAndTimeZone(NSLocale* locale, NSTimeZone* timezone) {
         @"",
         @"1/1/70, 12:00 AM",
         @"Jan 1, 1970, 12:00:00 AM",
-        @"January 1, 1970, 12:00:00 AM PST",
-        @"Thursday, January 1, 1970, 12:00:00 AM Pacific Standard Time"
+        @"January 1, 1970 at 12:00:00 AM PST",
+        @"Thursday, January 1, 1970 at 12:00:00 AM Pacific Standard Time"
     ];
 
     NSArray* expectedValuesGMT = @[
