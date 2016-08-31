@@ -41,9 +41,9 @@ ADDRESSBOOK_EXPORT CFDataRef ABPersonCopyImageData(ABRecordRef person) STUB_METH
 ADDRESSBOOK_EXPORT CFDataRef ABPersonCopyImageDataWithFormat(ABRecordRef person, ABPersonImageFormat format) STUB_METHOD;
 ADDRESSBOOK_EXPORT bool ABPersonHasImageData(ABRecordRef person) STUB_METHOD;
 ADDRESSBOOK_EXPORT bool ABPersonRemoveImageData(ABRecordRef person, CFErrorRef* error) STUB_METHOD;
-ADDRESSBOOK_EXPORT CFIndex ABAddressBookGetPersonCount(ABAddressBookRef addressBook) STUB_METHOD;
-ADDRESSBOOK_EXPORT ABRecordRef ABAddressBookGetPersonWithRecordID(ABAddressBookRef addressBook, ABRecordID recordID) STUB_METHOD;
-ADDRESSBOOK_EXPORT CFArrayRef ABAddressBookCopyArrayOfAllPeople(ABAddressBookRef addressBook) STUB_METHOD;
+ADDRESSBOOK_EXPORT CFIndex ABAddressBookGetPersonCount(ABAddressBookRef addressBook);
+ADDRESSBOOK_EXPORT ABRecordRef ABAddressBookGetPersonWithRecordID(ABAddressBookRef addressBook, ABRecordID recordID);
+ADDRESSBOOK_EXPORT CFArrayRef ABAddressBookCopyArrayOfAllPeople(ABAddressBookRef addressBook);
 ADDRESSBOOK_EXPORT CFArrayRef ABAddressBookCopyArrayOfAllPeopleInSource(ABAddressBookRef addressBook, ABRecordRef source) STUB_METHOD;
 ADDRESSBOOK_EXPORT CFArrayRef ABAddressBookCopyArrayOfAllPeopleInSourceWithSortOrdering(ABAddressBookRef addressBook,
                                                                                         ABRecordRef source,
@@ -149,3 +149,7 @@ ADDRESSBOOK_EXPORT const CFStringRef kABPersonAlternateBirthdayMonthKey;
 ADDRESSBOOK_EXPORT const CFStringRef kABPersonAlternateBirthdayIsLeapMonthKey;
 ADDRESSBOOK_EXPORT const CFStringRef kABPersonAlternateBirthdayDayKey;
 // CFNumberRef - kCFNumberNSIntegerType
+ADDRESSBOOK_EXPORT const CFStringRef kABPersonPhoneCompanyLabel;
+ADDRESSBOOK_EXPORT const CFStringRef kABPersonPhoneAssistantLabel;
+ADDRESSBOOK_EXPORT const CFStringRef kABPersonPhoneRadioLabel;
+ADDRESSBOOK_EXPORT const CFStringRef kABPersonSiblingLabel;
