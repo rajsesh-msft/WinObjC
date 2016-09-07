@@ -680,7 +680,28 @@ BASE_CLASS_REQUIRED_IMPLS(NSString, NSStringPrototype, CFStringGetTypeID);
  @Status Interoperable
 */
 - (instancetype)lastPathComponent {
-    return [self substringFromIndex:_CFStartOfLastPathComponent2(static_cast<CFStringRef>(self))];
+    if ([self length] == 0) {
+        return @"";
+    }
+
+    CFIndex index = _CFStartOfLastPathComponent2(static_cast<CFStringRef>(self));
+    NSString* substring = [self substringFromIndex:index];
+
+    if (IS_SLASH([self characterAtIndex:index])) {
+        if ([self length] == 1) {
+            // Substring is @"/" so we just return it
+            return substring;
+        }
+
+        // The only way we could have ended up here is if we have a string with multiple leading slashes.
+        // Splitting "foobar" on slash will return @["foobar"] if there are no slashes making this safe
+        NSArray<NSString*>* tokens = [self componentsSeparatedByString:_NSGetSlashStr()];
+        return ([tokens[0] isEqualToString:@""]) ? _NSGetSlashStr() : tokens[0];
+    }
+
+    // Remove trailing slashes
+    NSArray<NSString*>* tokens = [substring componentsSeparatedByString:_NSGetSlashStr()];
+    return tokens[0];
 }
 
 /**
@@ -1429,34 +1450,19 @@ BOOL _isALineSeparatorTypeCharacter(unichar ch) {
 
 /**
  @Status Interoperable
+ @Notes This API was deprecated in favor of stringByAddingPercentEncodingWithAllowedCharacters. APIs to decode anything other than
+ UTF8StringEncoding are unsupported both here and on the reference platform.
 */
 - (NSString*)stringByAddingPercentEscapesUsingEncoding:(NSStringEncoding)encoding {
-    NSUInteger i, length = [self length], resultLength = 0;
-    std::unique_ptr<unichar[], decltype(&IwFree)> unicode(static_cast<unichar*>(IwMalloc(length * 2)), IwFree);
-    std::unique_ptr<unichar[], decltype(&IwFree)> result(static_cast<unichar*>(IwMalloc(length * 3 * 2)), IwFree);
-    const char* hex = "0123456789ABCDEF";
+    // Allowed characters in this escape api.
+    NSCharacterSet* set = [NSCharacterSet URLFragmentAllowedCharacterSet];
 
-    [self getCharacters:unicode.get()];
-
-    for (i = 0; i < length; i++) {
-        unichar code = unicode[i];
-
-        if ((code <= 0x20) || (code == 0x22) || (code == 0x23) || (code == 0x25) || (code == 0x3C) || (code == 0x3E) || (code == 0x5B) ||
-            (code == 0x5C) || (code == 0x5D) || (code == 0x5E) || (code == 0x60) || (code == 0x7B) || (code == 0x7C) || (code == 0x7D)) {
-            result[resultLength++] = '%';
-            result[resultLength++] = hex[(code >> 4) & 0xF];
-            result[resultLength++] = hex[code & 0xF];
-        } else {
-            result[resultLength++] = code;
-        }
-    }
-
-    if (length == resultLength) {
-        return self;
-    }
-
-    NSString* ret = [NSString stringWithCharacters:result.get() length:resultLength];
-    return ret;
+    return [static_cast<NSString*>(
+        CFURLCreateStringByAddingPercentEscapesWithCharacterSets(kCFAllocatorDefault,
+                                                                 static_cast<CFStringRef>(self),
+                                                                 static_cast<CFCharacterSetRef>(set),
+                                                                 nullptr,
+                                                                 CFStringConvertNSStringEncodingToEncoding(encoding))) autorelease];
 }
 
 /**

@@ -608,3 +608,102 @@ TEST(NSString, StringsFormatPropertyList) {
     ASSERT_OBJCEQ(@"value1", propertyList[@"key1"]);
     ASSERT_OBJCEQ(@"value2", propertyList[@"key2"]);
 }
+
+TEST(NSString, StringByAddingPercentEscapesUsingEncodingTest) {
+    NSString* originalString = @"abcdefghijklmnopqrstuvwxyz : !@#$%^&*()_+1234567890-=`~\\|]}[{'\";:.>,</?";
+    NSString* expectedEscapedString =
+        @"abcdefghijklmnopqrstuvwxyz%20:%20!@%23$%25%5E&*()_+1234567890-=%60~%5C%7C%5D%7D%5B%7B'%22;:.%3E,%3C/?";
+
+    NSString* escapedString = [originalString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+
+    EXPECT_OBJCEQ(expectedEscapedString, escapedString);
+    EXPECT_OBJCEQ(originalString, escapedString.stringByRemovingPercentEncoding);
+    EXPECT_OBJCEQ(originalString, [escapedString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding]);
+
+    originalString = @"claesström";
+    expectedEscapedString = @"claesstr%C3%B6m";
+
+    escapedString = [originalString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+
+    EXPECT_OBJCEQ(expectedEscapedString, escapedString);
+    EXPECT_OBJCEQ(originalString, escapedString.stringByRemovingPercentEncoding);
+    EXPECT_OBJCEQ(originalString, [escapedString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding]);
+
+    // Removing percent encoding is unsupported on the reference platform for anything other than UTF8.
+    // This test is to ensure the percent encoding matches the reference platform's behavior.
+    originalString = @"abcdefghijklmnopqrstuvwxyz : !@#$%^&*()_+1234567890-=`~\\|]}[{'\";:.>,</?";
+    expectedEscapedString = @"abcdefghijklmnopqrstuvwxyz%FF%FE%20%00:%FF%FE%20%00!@%FF%FE%23%00$%FF%FE%25%00%FF%FE%5E%00&*()_+1234567890-=%"
+                            @"FF%FE%60%00~%FF%FE%5C%00%FF%FE%7C%00%FF%FE%5D%00%FF%FE%7D%00%FF%FE%5B%00%FF%FE%7B%00'%FF%FE%22%00;:.%FF%FE%"
+                            @"3E%00,%FF%FE%3C%00/?";
+
+    escapedString = [originalString stringByAddingPercentEscapesUsingEncoding:NSUnicodeStringEncoding];
+
+    EXPECT_OBJCEQ(expectedEscapedString, escapedString);
+}
+TEST(NSString, LastPathComponent) {
+    NSString* string = @"";
+    EXPECT_OBJCEQ(@"", string.lastPathComponent);
+
+    string = @"hello.world";
+    EXPECT_OBJCEQ(@"hello.world", string.lastPathComponent);
+
+    string = @"/";
+    EXPECT_OBJCEQ(@"/", string.lastPathComponent);
+
+#if TARGET_OS_WIN32
+    // Backward slash isn't properly supported in OSX, you end up getting FolderA\file.plist
+    string = @"C:\\FolderA\\file.plist";
+    EXPECT_OBJCEQ(@"file.plist", string.lastPathComponent);
+#endif
+
+    string = @"/tmp/scratch.tiff";
+    EXPECT_OBJCEQ(@"scratch.tiff", string.lastPathComponent);
+
+    string = @".scratch.tiff";
+    EXPECT_OBJCEQ(@".scratch.tiff", string.lastPathComponent);
+
+    string = @"/tmp/scratch";
+    EXPECT_OBJCEQ(@"scratch", string.lastPathComponent);
+
+    string = @".tiff";
+    EXPECT_OBJCEQ(@".tiff", string.lastPathComponent);
+
+    string = @".";
+    EXPECT_OBJCEQ(@".", string.lastPathComponent);
+
+    string = @"foo.";
+    EXPECT_OBJCEQ(@"foo.", string.lastPathComponent);
+
+    string = @"/tmp/";
+    EXPECT_OBJCEQ(@"tmp", string.lastPathComponent);
+
+    string = @"scratch///";
+    EXPECT_OBJCEQ(@"scratch", string.lastPathComponent);
+
+    string = @"////";
+    EXPECT_OBJCEQ(@"/", string.lastPathComponent);
+
+    string = @"/tmp/scratch..tiff";
+    EXPECT_OBJCEQ(@"scratch..tiff", string.lastPathComponent);
+
+    string = @"/tmp/random.foo.tiff";
+    EXPECT_OBJCEQ(@"random.foo.tiff", string.lastPathComponent);
+
+    string = @"/temp//foo//bar.txt";
+    EXPECT_OBJCEQ(@"bar.txt", string.lastPathComponent);
+
+    string = @"/.";
+    EXPECT_OBJCEQ(@".", string.lastPathComponent);
+
+    string = @"/foo/bar/.";
+    EXPECT_OBJCEQ(@".", string.lastPathComponent);
+
+    string = @"/baz/bar/.foo";
+    EXPECT_OBJCEQ(@".foo", string.lastPathComponent);
+
+    string = @"/tmp/foo.";
+    EXPECT_OBJCEQ(@"foo.", string.lastPathComponent);
+
+    string = @"/tmp/foo///";
+    EXPECT_OBJCEQ(@"foo", string.lastPathComponent);
+}
